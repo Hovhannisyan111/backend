@@ -1,0 +1,72 @@
+name: Backend Pull Request 
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+
+
+jobs:
+  terraform:
+    name: Terraform Refresh and Plan
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: List
+        run: ls -la 
+
+      - name: Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::976193222510:role/GithubRole
+          aws-region: eu-central-1
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/project
+
+      - name: Terraform Refresh
+        run: terraform refresh
+        working-directory: terraform/project
+
+      - name: Terraform Plan
+        id: tfplan
+        run: terraform plan -no-color > tfplan.txt
+        working-directory: terraform/project
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-artifact
+          path: terraform/project/tfplan.txt
+
+      - name: Comment Terraform Plan to pull_request
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: terraform/project/tfplan.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send Terraform Plan to Telegram
+        if: ${{ success() }}
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" \
+            -F chat_id="${{ secrets.TG_CHAT_ID }}" \
+            -F parse_mode="Markdown" \
+            -F text=$'✅ *In Backend Terraform Plan Completed*\n\n📍 *Region:* eu-central-1\n\n📦 *Repository:* Hovhannisyan111/backend\n\n🕒 *Run ID:* ${{ github.run_id }}\n\n🔗 [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+
