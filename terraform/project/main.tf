@@ -1,28 +1,33 @@
 module "vpc" {
-  source = "../modules/vpc"
+  #source = "../modules/vpc"
+  source = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/vpc?ref=main"
 }
 
 module "sg" {
-  source      = "../modules/sg"
+  #source      = "../modules/sg"
+  source      = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/sg?ref=main"
   sg_name     = "Backend-Security"
   vpc_id      = module.vpc.vpc_id
   allow_ports = [80, 443]
 }
 
 module "dynamodb" {
-  source     = "../modules/dynamodb"
+  #source     = "../modules/dynamodb"
+  source     = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/dynamodb?ref=main"
   table_name = "Backend-table"
   hash_key   = "id"
 }
 
 module "ecr" {
-  source        = "../modules/ecr"
+  #source        = "../modules/ecr"
+  source        = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/ecr?ref=main"
   ecr_repo_name = "backend"
   backend_path  = "../../docker"
 }
 
 module "lb" {
-  source            = "../modules/lb"
+  #source            = "../modules/lb"
+  source            = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/lb?ref=main"
   lb_name           = "Back-load-balancer"
   vpc_id            = module.vpc.vpc_id
   public_subnet_ids = module.vpc.public_subnet_ids
@@ -33,7 +38,8 @@ module "lb" {
 }
 
 module "ecs" {
-  source                 = "../modules/ecs"
+  #source                 = "../modules/ecs"
+  source                 = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/ecs?ref=main"
   cluster_name           = "ECS-cluster"
   backend_container_name = "Backend-container"
   backend_ecr_url        = module.ecr.backend_ecr_url
@@ -43,7 +49,8 @@ module "ecs" {
 }
 
 module "services" {
-  source                 = "../modules/service"
+  #source                 = "../modules/service"
+  source                 = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/service?ref=main"
   backend_service_name   = "Backend"
   backend_container_name = module.ecs.backend_container_name
   ecs_cluster_id         = module.ecs.ecs_cluster_id
@@ -55,7 +62,8 @@ module "services" {
 }
 
 module "asg" {
-  source               = "../modules/asg"
+  #source               = "../modules/asg"
+  source               = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/asg?ref=main"
   cluster_name         = module.ecs.cluster_name
   backend_service_name = module.services.backend_service_name
   max_backend_capacity = 2
