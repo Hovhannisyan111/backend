@@ -6,7 +6,6 @@ on:
     branches:
       - main
 
-
 jobs:
   terraform:
     name: Terraform Refresh and Plan
