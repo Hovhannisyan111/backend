@@ -1,0 +1,64 @@
+name: Backend Release
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  terraform:
+    name: Terraform Apply and Destroy
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: List files
+        run: ls -la
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::976193222510:role/GithubRole
+          aws-region: eu-central-1
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform/project
+
+      - name: Terraform Apply
+        id: tfapply
+        run: terraform apply -auto-approve
+        working-directory: terraform/project
+
+      - name: Sleep
+        run: sleep 60
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+        working-directory: terraform/project
+
+      - name: Send Success Telegram Message
+        if: ${{ success() }}
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" \
+            -F chat_id="${{ secrets.TG_CHAT_ID }}" \
+            -F parse_mode="Markdown" \
+            -F text=$'✅ *Terraform Apply & Destroy on Release Succeeded*\n\n📦 *Repository:* ${{ github.repository }}\n🏷️ *Tag:* ${{ github.event.release.tag_name }}\n\n🔗 [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+
+      - name: Send Failure Telegram Message
+        if: ${{ failure() }}
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" \
+            -F chat_id="${{ secrets.TG_CHAT_ID }}" \
+            -F parse_mode="Markdown" \
+            -F text=$'❌ *Terraform Apply & Destroy on Release Failed*\n\n📦 *Repository:* ${{ github.repository }}\n🏷️ *Tag:* ${{ github.event.release.tag_name }}\n\n🔗 [View Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})'
