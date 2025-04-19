@@ -43,9 +43,9 @@ jobs:
           #      - name: Sleep
           #        run: sleep 60
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
-        working-directory: terraform/project
+          #      - name: Terraform Destroy
+          #        run: terraform destroy -auto-approve
+          #        working-directory: terraform/project
 
       - name: Send Success Telegram Message
         if: ${{ success() }}
