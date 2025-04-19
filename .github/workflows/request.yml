@@ -41,6 +41,7 @@ jobs:
         working-directory: terraform/project
 
       - name: Terraform Refresh
+        continue-on-error: true
         run: terraform refresh
         working-directory: terraform/project
 
