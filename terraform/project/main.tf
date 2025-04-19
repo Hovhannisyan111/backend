@@ -57,7 +57,7 @@ module "services" {
   backend_task           = module.ecs.backend_task_arn
   public_subnet_ids      = module.vpc.public_subnet_ids
   security_group_id      = module.sg.security_group_id
-  backend_tg_arn         = lb #module.lb.backend_tg_arn
+  backend_tg_arn         = module.lb.backend_tg_arn
   backend_container_port = 80
 }
 
