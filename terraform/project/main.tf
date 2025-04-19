@@ -7,7 +7,7 @@ module "sg" {
   #source      = "../modules/sg"
   source      = "git::https://github.com/Hovhannisyan111/backend.git//terraform/modules/sg?ref=main"
   sg_name     = "Backend-Security"
-  vpc_id      = module.vpc.vpc_id
+  vpc_id      = vpc #module.vpc.vpc_id
   allow_ports = [80, 443]
 }
 
