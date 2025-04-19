@@ -40,8 +40,8 @@ jobs:
         run: terraform apply -auto-approve
         working-directory: terraform/project
 
-      - name: Sleep
-        run: sleep 60
+          #      - name: Sleep
+          #        run: sleep 60
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
